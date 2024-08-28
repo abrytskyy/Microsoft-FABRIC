@@ -1,0 +1,15 @@
+#Creating delta table(MANAGED-deleting table delete underlying files)
+#1
+df = spark.read.load('Files/2019.csv', format='csv', header=False)
+display(df)
+
+#2(automatic)
+df = spark.read.format("csv").option("header","true").load("Files/2019.csv")
+# df now is a Spark DataFrame containing CSV data from "Files/2019.csv".
+display(df)
+
+#Creating delta table(EXTERNAL-Deleting an external table from the lakehouse metastore does not delete the associated data files)
+df.write.format("delta").saveAsTable("myexternalt", path="Files/myexternalt")
+
+df.write.format("delta").saveAsTable("myexternaltable", path="abfss://4cea3934-7cce-4b02-b050-2de1edd73347@onelake.dfs.fabric.microsoft.com/299ce591-a4ca-4dee-9f16-0a841e241d87/Files/myexternaltab")
+# myexternaltab is created
