@@ -1,0 +1,42 @@
+#1.Creating "data" subfolder("New subfolder") in Files
+#2.Uploading file "sales.csv" from maskin to "data" subfolder: "Upload-Upload files/Upload folder"
+#3. Loading sales.scv from Files to table sales1.delta ("Load to Tables"-"New table") in Tables in Lakehouse
+
+#4.1 NOTEBOOK(Using sales1.delta table from Tables in Lakehouse. "Load data"-"Spark"/drag and drop):
+df = spark.sql("SELECT * FROM LHlab1.sales1 LIMIT 1000")
+display(df)
+
+#4.2 NOTEBOOK(Using sales.csv table from Files in Lakehouse. "Load data"-"Spark"/drag and drop):
+df = spark.read.format("csv").option("header","true").load("Files/data/sales.csv")
+# df now is a Spark DataFrame containing CSV data from "Files/data/sales.csv".
+display(df)
+
+#4.2.1
+df = spark.sql("SELECT Item, round(sum(Quantity*UnitPrice), 2) Revenue FROM LHlab1.sales1 group by 1 order by 2 desc limit 20")
+display(df)
+#Output:  Road-150 Red, 48      1205876.99
+
+
+#4.3 sales1.delta in SQL analytics endpoint ("New SQL query"-"Select TOP 100"):
+SELECT TOP (100) [SalesOrderNumber]
+            ,[SalesOrderLineNumber]
+            ,[OrderDate]
+            ,[CustomerName]
+            ,[EmailAddress]
+            ,[Item]
+            ,[Quantity]
+            ,[UnitPrice]
+            ,[TaxAmount]
+FROM [LHlab1].[dbo].[sales1]
+
+#4.3.1.
+# top selling items by price
+SELECT Item, round(sum(Quantity*UnitPrice), 2) AS Revenue
+FROM sales1 
+group by Item
+order by 2 desc
+#Output:  Road-150 Red, 48      1205876.99
+
+#top 20 best selling items
+df = spark.sql("SELECT Item, round(sum(Quantity*UnitPrice), 2) FROM LHlab1.sales1 group by 1 order by 2 desc limit 20")
+display(df)
