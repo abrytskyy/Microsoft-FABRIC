@@ -1,15 +1,59 @@
 #Creating delta table(MANAGED-deleting table delete underlying files)
 #1
-df = spark.read.load('Files/2019.csv', format='csv', header=False)
+# Load a file into a dataframe
+df = spark.read.load('Files/products.csv', format='csv', header=True)
+display(df)
+#2
+# Save the dataframe as a delta table
+df.write.format("delta").saveAsTable("products3")
+#3
+#Quering delta table(automatics)
+df = spark.sql("SELECT * FROM LHlab3b.products3 LIMIT 1000")
 display(df)
 
-#2(automatic)
-df = spark.read.format("csv").option("header","true").load("Files/2019.csv")
-# df now is a Spark DataFrame containing CSV data from "Files/2019.csv".
-display(df)
 
-#Creating delta table(EXTERNAL-Deleting an external table from the lakehouse metastore does not delete the associated data files)
-df.write.format("delta").saveAsTable("myexternalt", path="Files/myexternalt")
+#Creating delta table from dataframe df(EXTERNAL-Deleting an external table from the lakehouse metastore does not delete the associated data files)
+#1a
+df.write.format("delta").saveAsTable("products4", path="Files/products4")
+or
+#1b 
+df.write.format("delta").saveAsTable("products5", path="abfss://29923f49-4968-4e69-9749-ee70c0b6ccf7@onelake.dfs.fabric.microsoft.com/05c4e745-ac48-4185-835d-b9fbb639d781/Files/products5.csv")
 
-df.write.format("delta").saveAsTable("myexternaltable", path="abfss://4cea3934-7cce-4b02-b050-2de1edd73347@onelake.dfs.fabric.microsoft.com/299ce591-a4ca-4dee-9f16-0a841e241d87/Files/myexternaltab")
-# myexternaltab is created
+
+#Creating table metadata
+#Use the DeltaTableBuilder
+#1
+from delta.tables import *
+DeltaTable.create(spark) \
+  .tableName("products6") \
+  .addColumn("Productid", "INT") \
+  .addColumn("ProductName", "STRING") \
+  .addColumn("Category", "STRING") \
+  .addColumn("Price", "FLOAT") \
+  .execute()
+#Use Spark SQL
+#2.1
+%%sql
+
+CREATE TABLE products7
+(
+    Orderid INT NOT NULL,
+    OrderDate TIMESTAMP NOT NULL,
+    CustomerName STRING,
+    SalesTotal FLOAT NOT NULL
+)
+USING DELTA
+#Use Spark SQL+LOCATION
+#2.2
+%%sql
+
+CREATE TABLE products8
+USING DELTA
+LOCATION 'Files/products8'
+
+#3
+#save data in delta format without creating a table definition in the metastore:
+delta_path = "Files/products9"
+df.write.format("delta").save(delta_path)
+
+
