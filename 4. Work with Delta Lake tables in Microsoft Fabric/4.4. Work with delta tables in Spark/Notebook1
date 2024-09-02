@@ -1,0 +1,23 @@
+#INSERT:
+spark.sql("INSERT INTO products10 VALUES ('770', 'Widget', 'Accessories', '2.99')")
+df = spark.sql("SELECT * FROM LHlab3b.products10 LIMIT 1000")
+display(df)
+
+#UPDATE:
+%%sql
+
+UPDATE products10
+SET ListPrice = '2.49' WHERE ProductID = '770';
+
+#DESCRIBE
+%%sql
+
+DESCRIBE HISTORY products10
+
+%%sql
+
+DESCRIBE HISTORY 'Files/products9'
+
+#READ VERSION 0:
+df = spark.read.format("delta").option("versionAsOf", 0).load("Files/products10")
+display(df)
